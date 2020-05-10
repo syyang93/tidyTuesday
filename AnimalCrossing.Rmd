@@ -1,0 +1,38 @@
+# 5.7.2020
+
+# Read in the data and load libraries
+```{r setup}
+critic <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/critic.tsv')
+user_reviews <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/user_reviews.tsv')
+
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+# Set sources for later use
+critic$Source = 'Critic'
+user_reviews$Source = 'User'
+
+# Change critic grades to be same scale as user reviews
+critic$grade = critic$grade/10
+
+all.reviews = bind_rows(critic2, user_reviews)
+
+# AC update history from here: https://en-americas-support.nintendo.com/app/answers/detail/a_id/49112/~/how-to-update-animal-crossing%3A-new-horizons
+updates = data.frame(date = c('2020-04-22', '2020-04-06', '2020-04-03', '2020-04-02', '2020-03-26', '2020-03-20'), version = paste('version', c('1.2.0', '1.1.4', '1.1.3', '1.1.2', '1.1.1', '1.1')))
+
+# Review bombing: when large groups of people leave extreme negative reviews.  There's a lot of users who gave grades of zero
+table(user_reviews$grade)
+
+# Remove potential review bombers:
+nobomb = filter(user_reviews, grade != 0)
+nobomb$Source = 'User (no zeros)'
+
+# remove 1.1.3 label so it doesn't clash with 1.1.2
+updates$version[which(updates$version == 'version 1.1.3')] = ''
+
+p3 = ggplot(bind_rows(nobomb, critic2, user_reviews), aes(as.Date(date), grade, col = Source)) + geom_smooth() + ylab('Grades') + xlab('Date') + geom_text(data = updates, aes(as.Date(date), y = 1, label = version, vjust = -0.5), angle = 90, col = 'black') + geom_vline(xintercept = as.Date(updates$date), lty = 2, colour = "gray50") + xlim(c(min(bind_rows(nobomb, critic2)$date), max(bind_rows(nobomb, critic2)$date))) + ggtitle('Animal Crossing grades over time') + ylim(c(0, 10))
+
+p3
+```
