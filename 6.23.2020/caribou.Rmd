@@ -1,0 +1,87 @@
+# Get the Data
+```{r}
+individuals <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-23/individuals.csv')
+locations <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-23/locations.csv')
+locations$Date.only = as.Date(locations$timestamp)
+```
+
+# Make a map of Canada?
+```{r}
+# Ended up using stamenmaps: https://cran.r-project.org/web/packages/ggmap/readme/README.html
+# http://eriqande.github.io/rep-res-web/lectures/making-maps-with-R.html
+# https://stackoverflow.com/questions/18323832/plot-small-region-of-a-large-polygon-map-in-ggplot2
+# https://tengl.net/blog/2020/1/7/drawing-canada-maps-in-r
+
+library(ggplot2)
+library(ggmap)
+library(gganimate)
+
+carib.loc = c(left = -125, right = -119, bottom = 52.5, top = 57.5)
+get_stamenmap(carib.loc, zoom = 5, maptype = 'terrain') %>% ggmap -> carib.map
+
+carib.loc2 = c(left = -125, right = -119, bottom = 54, top = 57.5)
+get_stamenmap(carib.loc2, zoom = 5, maptype = 'terrain') %>% ggmap -> carib.map2
+
+# without animations
+carib.map + geom_point(data = locations, aes(longitude, latitude, colour = animal_id)) + theme(legend.position = "none")
+ 
+# test a single animation
+carib.test = subset(locations, animal_id == 'GR_C01')
+carib.map + geom_point(data = carib.test, aes(longitude, latitude, colour = animal_id)) + theme(legend.position = "none") + labs(title = "Date: {frame_time}") + transition_time(Date.only) + shadow_wake(wake_length = 0.1, alpha = FALSE) + xlab('Longitude') + ylab('Latitude')
+
+# try all
+final.anim = carib.map + geom_point(data = locations, aes(longitude, latitude, colour = animal_id)) + theme(legend.position = "none") + labs(title = "Date: {frame_time}") + transition_time(Date.only) + shadow_wake(wake_length = 0.1, alpha = FALSE) + xlab('Longitude') + ylab('Latitude')
+
+animate(final.anim)
+
+# there's a huge gap, only take observations after 2000? also no wake time.
+only.new = subset(locations, Date.only > '2000-01-01')
+
+# final.anim2 = carib.map2 + geom_point(data = only.new, aes(longitude, latitude, colour = animal_id)) + theme(legend.position = "none") + labs(title = "Date: {frame_time}") + transition_time(Date.only) + xlab('Longitude') + ylab('Latitude')
+# 
+# animate(final.anim2)
+# 
+# anim_save("~/Desktop/carib_after_2000.gif")
+# 
+# final.anim3 = carib.map2 + geom_point(data = only.new, aes(longitude, latitude, colour = animal_id)) + theme(legend.position = "none") + labs(title = "Date: {frame_time}") + transition_time(timestamp) + xlab('Longitude') + ylab('Latitude')
+# 
+# animate(final.anim3)
+
+final.anim4 = carib.map2 + geom_point(data = only.new, aes(longitude, latitude, colour = study_site)) + labs(title = "Date: {frame_time}") + transition_time(Date.only) + xlab('Longitude') + ylab('Latitude') #  + theme(legend.position = "none")
+
+animate(final.anim4)
+
+anim_save("~/Desktop/carib_study_site2.gif")
+```
+
+# Tutorial using gganimate:
+```{r}
+# From here: https://www.datanovia.com/en/blog/gganimate-how-to-create-plots-with-beautiful-animation-in-r/
+library(ggplot2)
+library(gganimate)
+
+library(gapminder)
+head(gapminder)
+
+p <- ggplot(
+  gapminder, 
+  aes(x = gdpPercap, y=lifeExp, size = pop, colour = country)
+  ) +
+  geom_point(show.legend = FALSE, alpha = 0.7) +
+  scale_color_viridis_d() +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  labs(x = "GDP per capita", y = "Life expectancy")
+p
+
+# animate requires transition_time
+p2 = p + transition_time(year) +
+  labs(title = "Year: {frame_time}")
+
+p3 = p2 +
+  shadow_wake(wake_length = 0.1, alpha = FALSE) # wake = proportion of the total animation, for tails
+
+animate(p2)
+anim_save("~/Desktop/gdp.gif")
+```
+
