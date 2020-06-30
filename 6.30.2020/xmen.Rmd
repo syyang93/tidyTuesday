@@ -1,0 +1,50 @@
+# Call libraries
+```{r}
+library(tidyverse)
+
+```
+
+# Get the Data
+```{r}
+# Read in with tidytuesdayR package 
+# Install from CRAN via: install.packages("tidytuesdayR")
+# This loads the readme and all the datasets for the week of interest!
+
+# Either ISO-8601 date or year/week works!
+
+tuesdata <- tidytuesdayR::tt_load('2020-06-30')
+tuesdata <- tidytuesdayR::tt_load(2020, week = 27)
+
+vis = tuesdata$character_visualization
+depict = dplyr::select(vis, issue, costume, character, depicted)
+
+# make dataframe for ggplotting
+depict %>% 
+  group_by(issue, character) %>% 
+  summarise(total_depictions = sum(depicted)) -> new.df
+# list all characters: 
+# new.df$character %>% unique %>% dput
+
+# make dataframe for counting number of issues
+new.df %>% reshape2::dcast(character ~ issue) %>% t() %>% as.data.frame() -> new.df2
+colnames(new.df2) = unlist(new.df2[1,])
+new.df2 = new.df2[-1,]
+new.df2$issue = as.numeric(rownames(new.df2))
+new.df2 = as.data.frame(apply(new.df2, 2, as.numeric))
+
+# what characters do you want?
+char1 = 'Storm = Ororo Munroe'
+char2 = 'Marvel Girl/Phoenix = Jean Grey'
+
+# what threshold?
+appearances = 30
+
+# subsets
+toplot = subset(new.df, character %in% c(char1, char2))
+
+# need to pass a string: https://stackoverflow.com/questions/48219732/pass-a-string-as-variable-name-in-dplyrfilter
+shared.issues = new.df2 %>% dplyr::select(char1, char2, issue) %>% filter((!!as.name(char1)) >= appearances) %>% filter((!!as.name(char2)) >= appearances)
+
+# plots
+ggplot(toplot, aes(issue, total_depictions, col = character)) + geom_line() + geom_hline(yintercept = appearances, col = 'red') + ggtitle(paste('Number of issues with greater than', x, 'appearances for both characters:', nrow(shared.issues))) + geom_text(data = shared.issues, aes(issue, y = 100, label = paste('issue', issue), vjust = -0.5), angle = 90, col = 'black') + geom_vline(xintercept = shared.issues$issue, lty = 2, colour = "gray50") # this is just too messy 
+```
