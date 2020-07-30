@@ -1,0 +1,22 @@
+# Get the Data
+```{r}
+animal_outcomes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-21/animal_outcomes.csv')
+```
+
+# Load libraries
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(ggdark) # nsgrantham's ggdark package
+library(png)
+library(ggpubr)
+```
+
+# Visualize
+```{r}
+# Filter for rehoming
+rehomed = dplyr::filter(animal_outcomes, outcome == "Rehomed")
+
+# Plot
+ggplot(rehomed, aes(year, Total, color = animal_type)) + geom_line() + dark_theme_gray() + labs(color = 'Animal Type') + labs(color = 'Animal Type', y = 'Number of animals', x = 'Year', title = 'RSPCA Animal Outcomes')
+```
