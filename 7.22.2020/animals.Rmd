@@ -18,5 +18,5 @@ library(ggpubr)
 rehomed = dplyr::filter(animal_outcomes, outcome == "Rehomed")
 
 # Plot
-ggplot(rehomed, aes(year, Total, color = animal_type)) + geom_line() + dark_theme_gray() + labs(color = 'Animal Type') + labs(color = 'Animal Type', y = 'Number of rehomed animals', x = 'Year', title = 'Rehomed RSPCA Animals Over Time')
+ggplot(rehomed, aes(year, Total, color = animal_type)) + geom_line() + dark_theme_gray() + labs(color = 'Animal Type') + labs(color = 'Animal Type', y = 'Number of rehomed animals', x = 'Year', title = 'RSPCA Animal Outcomes')
 ```
