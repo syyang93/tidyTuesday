@@ -53,7 +53,7 @@ ggplot(try, aes(x = char_word, n, fill = character)) +
   geom_col(show.legend = FALSE) +
   labs(x = NULL, y = NULL) +
   facet_wrap(~character, ncol = 2, scales = "free") +
-  coord_flip() + theme_avatar(title.font = "Slayer", text.font = "Slayer")  + scale_fill_manual(values = cols) + ggtitle('Who says whose name the most?')
+  coord_flip() + theme_avatar(title.font = "Slayer", text.font = "Slayer")  + scale_fill_manual(values = cols) + ggtitle('ATLA: Say my name, say my name')
 
 # Note: Aang and Iroh would probably be much higher for Zuko if you used "avatar" and "uncle" as substitutes.
 
