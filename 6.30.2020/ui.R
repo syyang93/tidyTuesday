@@ -7,7 +7,7 @@ fluidPage(theme = shinytheme("flatly"),
           tags$style(type='text/css', ".selectize-input { font-size: 14; line-height: 14px;} .selectize-dropdown { font-size: 14; line-height: 1.5; }"),
           
           # Application title
-          titlePanel("Which two X-men would you like to look at?"),
+          titlePanel("Pick two X-men to look at:"),
           # Sidebar 
           sidebarLayout(
             sidebarPanel(

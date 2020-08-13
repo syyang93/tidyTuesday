@@ -1,0 +1,65 @@
+# packages
+```{r setup}
+library(magrittr)
+library(tidyverse)
+library(tidytext)
+library(Hmisc)
+library(extrafont)
+library(tvthemes)
+loadfonts(quiet = TRUE)
+```
+
+# data
+```{r}
+avatar <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-11/avatar.csv')
+
+# subset to be only characters:
+a = subset(avatar, character != 'Scene Description')
+
+grep("Water. Earth. Fire. Air.", a$character_words) # was worried Katara's intro text would skew things but it only shows up twice
+
+# restructure to be one token per row:
+a %>% unnest_tokens(word, character_words) -> unnest
+
+# remove stop words:
+data(stop_words)
+
+tidy_avatar <- unnest %>%
+  anti_join(stop_words)
+
+tidy_avatar %>% count(word, sort = TRUE)
+```
+
+# plot
+```{r}
+# Let's do the top 6 characters
+top6 = tidy_avatar %>% count(character, sort = TRUE) %>% head(6)
+all.wc = tidy_avatar %>% group_by(character) %>% count(word, sort = TRUE) 
+names2 = subset(all.wc, character %in% top6$character & word %in% tolower(top6$character))
+
+# Make a plot
+names2 %>%
+  arrange(desc(n)) -> desc
+
+desc$char_word = as.factor(paste0(substr(desc$character, 1, 1), ' - ', capitalize(desc$word)))
+
+desc %>% mutate(char_word = factor(char_word, levels = rev(unique(char_word)))) %>% group_by(character) %>% top_n(15) %>% ungroup() -> try
+
+cols <- c(avatar_pal("AirNomads")(1), avatar_pal("FireNation")(5)[2],  avatar_pal("WaterTribe")(6)[1], avatar_pal("WaterTribe")(6)[3], avatar_pal("EarthKingdom")(2)[2], avatar_pal("FireNation")(5)[4])
+
+ggplot(try, aes(x = char_word, n, fill = character)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = NULL) +
+  facet_wrap(~character, ncol = 2, scales = "free") +
+  coord_flip() + theme_avatar(title.font = "Slayer", text.font = "Slayer")  + scale_fill_manual(values = cols) + ggtitle('Who says whose name the most?')
+
+# Note: Aang and Iroh would probably be much higher for Zuko if you used "avatar" and "uncle" as substitutes.
+
+# Couldn't get this to work the way you wanted...
+# try %>% ungroup() %>%
+#   ggplot(aes(x = word, n, fill = character)) +
+#   geom_col(show.legend = FALSE) +
+#   labs(x = NULL, y = "Number of times each name is said") +
+#   facet_wrap(~character, ncol = 2, scales = "free") +
+#   coord_flip() + theme_avatar() 
+```
