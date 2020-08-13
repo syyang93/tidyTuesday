@@ -11,6 +11,8 @@ loadfonts(quiet = TRUE)
 
 # data
 ```{r}
+# super helpful tutorial, even though i didn't end up doing sentiment analysis: https://www.tidytextmining.com/tfidf.html#tfidf
+
 avatar <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-11/avatar.csv')
 
 # subset to be only characters:
@@ -35,7 +37,7 @@ tidy_avatar %>% count(word, sort = TRUE)
 # Let's do the top 6 characters
 top6 = tidy_avatar %>% count(character, sort = TRUE) %>% head(6)
 all.wc = tidy_avatar %>% group_by(character) %>% count(word, sort = TRUE) 
-names2 = subset(all.wc, character %in% top6$character & word %in% tolower(top6$character))
+names2 = subset(all.wc, character %in% top6$character & word %in% c(tolower(top6$character)))
 
 # Make a plot
 names2 %>%
