@@ -1,0 +1,32 @@
+# packages
+```{r setup}
+library(magrittr)
+library(tidyverse)
+library(ggplot2)
+library(plyr)
+```
+
+# data from tidytuesday
+```{r}
+mobile <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-11-10/mobile.csv')
+landline <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-11-10/landline.csv')
+```
+
+# look at landline vs mobile usage
+```{r}
+combined = inner_join(landline, mobile, by = c('entity', 'year'), suffix = c('_land', '_mobile'))
+# ggplot(combined, aes(year, mobile_subs, col = continent_land)) + geom_point()
+combined %>% group_by(continent_land, year) %>% summarise_at(vars(mobile_subs, landline_subs), funs(mean(., na.rm=TRUE))) -> mean_cont
+
+ggplot(mean_cont, aes(year, mobile_subs, col = continent_land)) + geom_line() + geom_line(data = mean_cont, aes(year, landline_subs, col = continent_land), linetype = 'dashed') + theme_classic() + ylab('Number of subscriptions') + xlab('Year') + labs(col = "Continent")
+
+mobile$Subtype = 'Mobile'
+landline$Subtype = "Landline"
+mobile$subs = mobile$mobile_subs
+landline$subs = landline$landline_subs
+
+both = rbind.fill(mobile, landline)
+both %>% group_by(continent, year, Subtype) %>% summarise_at(vars(subs), funs(mean(., na.rm=TRUE))) -> mean_cont_long
+
+ggplot(mean_cont_long, aes(year, subs, col = continent)) + geom_line(aes(linetype = Subtype)) + theme_classic() + ylab('Number of subscriptions') + xlab('Year') + labs(col = "Continent", linetype = 'Subscription type')
+```
