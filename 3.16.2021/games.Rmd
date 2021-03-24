@@ -1,0 +1,58 @@
+---
+title: "Games"
+output: html_document
+---
+
+# Load the data
+```{r}
+games <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-16/games.csv')
+
+# avg = avg number of simultaneous players
+# gain = difference in avg number of simult. players compared to previous month
+```
+
+# Libraries:
+```{r}
+library(magrittr)
+library(tidyverse)
+library(png)
+library(grid)
+library(ggimage)
+setwd('~/Documents/Work/tidyTuesday/3.16.2021/')
+```
+
+# Celeste
+```{r}
+games %>% filter(gamename == 'Celeste') %>% mutate(month_year = as.Date(paste0(year, '-', month, '-', 1), format = c("%Y-%B-%d"))) %>% ggplot(aes(month_year, avg)) + geom_line()
+```
+
+# Plot MMOs together
+```{r}
+games %>% filter(gamename %in% c('MapleStory', 'The Elder Scrolls Online', 'Black Desert Online', 'The Lord of the Rings Online\u0099', 'FINAL FANTASY XIV Online')) %>% mutate(month_year = as.Date(paste0(year, '-', month, '-', 1), format = c("%Y-%B-%d")), percent_num = as.numeric(gsub('%', '', avg_peak_perc))) -> mmos
+
+# colorblind friendly
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+mmos %>% ggplot(aes(month_year, as.numeric(gsub('%', '', avg)), col = gamename)) + geom_line(size = 1.15) + geom_vline(xintercept = as.Date('2020-3-1'), col = 'darkgray', linetype = 'dashed') + annotate('text', x = as.Date('2020-3-1'), y = max(mmos$avg) - sd(mmos$avg), label = 'COVID-19 shutdown', vjust = -0.5, angle = 90, col = 'black') + xlab('Date') + ylab('Number of players') + scale_colour_manual(values=cbp1) + guides(col=guide_legend(title="Game")) + theme_classic()
+```
+
+# Hades
+```{r}
+games %>% filter(gamename == 'Hades') %>% mutate(month_year = as.Date(paste0(year, '-', month, '-', 1), format = c("%Y-%B-%d"))) %>% ggplot(aes(month_year, avg)) + geom_line()
+```
+
+# Hollow Knight
+```{r}
+games %>% filter(gamename == 'Hollow Knight') %>% mutate(month_year = as.Date(paste0(year, '-', month, '-', 1), format = c("%Y-%B-%d"))) -> hk 
+
+# DLC/Silksong/Covid-19 info
+dlcs = data.frame(dlc_name = c('Godmaster', 'Lifeblood', 'The Grimm Troupe', 'Hidden Dreams', 'Silksong announced', 'COVID-19'), month_year = as.Date(c('August 1, 2018', 'April 1, 2018', 'October 1, 2017', 'August 1, 2017', 'February 1, 2019', 'March 1, 2020'), format = c("%B %d, %Y")), image = c('godmaster.png', 'lifeblood.png', 'grimmtroupe.png', 'hiddendreams.png', NA, NA))
+
+# Make plot
+p = ggplot(hk, aes(month_year, avg)) + geom_line(col = 'lightgray') + geom_vline(xintercept = dlcs$month_year, linetype = 'dashed', col = 'lightgray') + annotate('text', x = dlcs$month_year, y = max(hk$avg) - sd(hk$avg), label = dlcs$dlc_name, vjust = -0.5, angle = 90, col = 'white') + ylab('Average simultaneous players') + xlab('Date') + theme_dark()
+
+# add image annotations
+hk_dlc = merge(hk, dlcs, by = 'month_year')
+p + geom_image(data = hk_dlc, aes(x = month_year, y = avg, image = image), size = 0.04)
+```
